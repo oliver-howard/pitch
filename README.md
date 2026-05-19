@@ -8,7 +8,7 @@ A minimal guitar tuner for the web, inspired by iOS design.
 - Animated accuracy ring that fills as you approach the target note
 - Live oscilloscope waveform drawn from the microphone signal
 - Smooth needle meter showing cents deviation (flat/sharp)
-- All UI elements turn green when in tune (within ±5 cents)
+- All UI elements turn green when in tune (within ±2.5 cents)
 
 ## Tech
 
