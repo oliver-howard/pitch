@@ -1,0 +1,202 @@
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 64px 32px 56px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+
+.app-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: #aeaeb2;
+}
+
+/* ── Note circle ── */
+
+.note-circle {
+  width: 192px;
+  height: 192px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background-color 0.35s ease;
+}
+
+.note-circle.in-tune { background-color: rgba(52,199,89,0.06); }
+
+/* ── Waveform canvas ── */
+
+.waveform-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Accuracy ring ── */
+
+.ring-svg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ring-track {
+  fill: none;
+  stroke: #e5e5ea;
+  stroke-width: 2;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: #e5e5ea;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.12s ease, stroke 0.35s ease;
+}
+
+.ring-progress.active  { stroke: #3a3a3c; }
+.ring-progress.in-tune { stroke: #34c759; }
+
+/* ── Note letter / octave ── */
+
+.note-letter {
+  position: relative;
+  z-index: 2;
+  font-size: 96px;
+  font-weight: 200;
+  line-height: 1;
+  color: #1c1c1e;
+  transition: color 0.35s ease;
+  user-select: none;
+}
+
+.note-circle.in-tune .note-letter { color: #34c759; }
+
+.note-octave {
+  position: absolute;
+  bottom: 32px;
+  right: 42px;
+  z-index: 2;
+  font-size: 15px;
+  font-weight: 400;
+  color: #aeaeb2;
+  user-select: none;
+}
+
+/* ── Meter ──*/
+
+.meter-wrapper { width: 100%; }
+
+.meter-bar {
+  position: relative;
+  height: 3px;
+  background: #e5e5ea;
+  border-radius: 2px;
+  margin-bottom: 12px;
+}
+
+.meter-center-tick {
+  position: absolute;
+  left: 50%;
+  top: -5px;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 13px;
+  background: #c7c7cc;
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.meter-dot {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e5e5ea;
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.11s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.meter-dot.active  { background: #1c1c1e; }
+.meter-dot.in-tune { background: #34c759; box-shadow: 0 0 0 5px rgba(52,199,89,0.2); }
+
+.meter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #c7c7cc;
+  user-select: none;
+}
+
+/* ── Button ── */
+
+.btn {
+  padding: 16px 56px;
+  border-radius: 100px;
+  border: none;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.btn:active { transform: scale(0.96); opacity: 0.8; }
+
+.btn-start { background: #1c1c1e; color: #ffffff; }
+.btn-stop  { background: #e5e5ea; color: #3a3a3c; }
+
+/* ── String row ── */
+
+.strings-row {
+  display: flex;
+  gap: 6px;
+}
+
+.string-pill {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 300;
+  color: #aeaeb2;
+  border: 1.5px solid transparent;
+  transition: color 0.3s ease, border-color 0.3s ease, font-weight 0.1s;
+  user-select: none;
+}
+
+.string-pill.active  { color: #1c1c1e; border-color: #3a3a3c; font-weight: 500; }
+.string-pill.in-tune { color: #34c759; border-color: #34c759; font-weight: 500; }
+
+/* ── Error ── */
+
+.error-msg {
+  font-size: 14px;
+  color: #ff453a;
+  text-align: center;
+}
