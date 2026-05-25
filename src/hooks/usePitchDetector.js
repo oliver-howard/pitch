@@ -53,36 +53,60 @@ export function usePitchDetector() {
       const detector = PitchDetector.forFloat32Array(analyser.fftSize);
       const buf = new Float32Array(detector.inputLength);
       analyserRef.current = analyser;
-      refs.current = { stream, ctx, analyser, smoothedCents: null, lastString: null, lastValidAt: 0 };
+      refs.current = { stream, ctx, analyser, smoothedCents: null, lastString: null, lastValidAt: 0, consecutiveFrames: 0 };
 
-      const ALPHA = 0.25;       // EMA weight on incoming reading (lower = smoother)
-      const CLARITY_MIN = 0.95; // raised from 0.9
-      const HOLD_MS = 150;      // keep last reading visible for this long after signal drops
+      const ALPHA = 0.25;        // EMA weight on incoming reading (lower = smoother)
+      const CLARITY_MIN = 0.95;  // raised from 0.9
+      const HOLD_MS = 150;       // keep last reading visible for this long after signal drops
+      const RMS_MIN = 0.01;      // ~-40 dBFS silence gate — ignores ambient noise
+      const ONSET_FRAMES = 3;    // consecutive valid frames required before showing a result
 
       function tick() {
         analyser.getFloatTimeDomainData(buf);
-        const [freq, clarity] = detector.findPitch(buf, ctx.sampleRate);
+
+        // Silence gate: skip pitch detection entirely when signal is too quiet
+        let sumSq = 0;
+        for (let i = 0; i < buf.length; i++) sumSq += buf[i] * buf[i];
+        const rms = Math.sqrt(sumSq / buf.length);
+
         const now = performance.now();
+        let gotValidReading = false;
 
-        if (clarity > CLARITY_MIN && freq >= 70 && freq <= 380) {
-          const raw = closestString(freq);
+        if (rms >= RMS_MIN) {
+          const [freq, clarity] = detector.findPitch(buf, ctx.sampleRate);
 
-          // Reset EMA when string changes to avoid slow cross-string interpolation
-          if (refs.current.lastString !== raw.string || refs.current.smoothedCents === null) {
-            refs.current.smoothedCents = raw.cents;
-            refs.current.lastString = raw.string;
+          if (clarity > CLARITY_MIN && freq >= 70 && freq <= 380) {
+            const raw = closestString(freq);
+
+            if (refs.current.lastString !== raw.string) {
+              // String changed — reset EMA and onset counter
+              refs.current.consecutiveFrames = 1;
+              refs.current.smoothedCents = raw.cents;
+              refs.current.lastString = raw.string;
+            } else {
+              refs.current.consecutiveFrames++;
+              refs.current.smoothedCents = ALPHA * raw.cents + (1 - ALPHA) * refs.current.smoothedCents;
+            }
+
+            if (refs.current.consecutiveFrames >= ONSET_FRAMES) {
+              refs.current.lastValidAt = now;
+              setResult({ ...raw, cents: refs.current.smoothedCents });
+              gotValidReading = true;
+            }
           } else {
-            refs.current.smoothedCents = ALPHA * raw.cents + (1 - ALPHA) * refs.current.smoothedCents;
+            refs.current.consecutiveFrames = 0;
           }
-
-          refs.current.lastValidAt = now;
-          setResult({ ...raw, cents: refs.current.smoothedCents });
-        } else if (now - refs.current.lastValidAt < HOLD_MS) {
-          // hold — don't call setResult, keep last displayed value
         } else {
-          refs.current.smoothedCents = null;
-          refs.current.lastString = null;
-          setResult(null);
+          refs.current.consecutiveFrames = 0;
+        }
+
+        if (!gotValidReading) {
+          if (now - refs.current.lastValidAt >= HOLD_MS) {
+            refs.current.smoothedCents = null;
+            refs.current.lastString = null;
+            setResult(null);
+          }
+          // else: hold — don't call setResult, keep last displayed value
         }
 
         refs.current.raf = requestAnimationFrame(tick);
