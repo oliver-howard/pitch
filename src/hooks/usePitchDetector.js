@@ -94,16 +94,20 @@ export function usePitchDetector() {
               gotValidReading = true;
             }
           } else {
+            // Lost pitch clarity — reset onset counter so it must re-earn display
             refs.current.consecutiveFrames = 0;
+            refs.current.lastString = null;
+            refs.current.smoothedCents = null;
           }
         } else {
+          // Gone silent — reset onset counter
           refs.current.consecutiveFrames = 0;
+          refs.current.lastString = null;
+          refs.current.smoothedCents = null;
         }
 
         if (!gotValidReading) {
           if (now - refs.current.lastValidAt >= HOLD_MS) {
-            refs.current.smoothedCents = null;
-            refs.current.lastString = null;
             setResult(null);
           }
           // else: hold — don't call setResult, keep last displayed value
